@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <EditText
+        android:id="@+id/et_place_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Place Name"
+        android:inputType="textCapWords"
+        android:lines="1"
+        android:maxLength="50" />
+
+    <EditText
+        android:id="@+id/et_place_detail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:hint="Place Description"
+        android:inputType="text"
+        android:lines="3"
+        android:maxLength="250" />
+
+    <Button
+        android:id="@+id/bn_place_create"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Create" />
+
+</LinearLayout>

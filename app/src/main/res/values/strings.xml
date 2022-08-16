@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">WifiPosition</string>
+
+    <string-array name="algoNames">
+        <item name="1">K Nearest Neighbor (KNN) Algorithm</item>
+        <item name="2">Weighted K Nearest Neighbor (WKNN) Algorithm</item>
+    </string-array>
+
+    <string-array name="algoValues">
+        <item name="1">1</item>
+        <item name="2">2</item>
+    </string-array>
+</resources>
