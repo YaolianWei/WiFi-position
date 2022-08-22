@@ -6,10 +6,12 @@
     android:orientation="vertical"
     android:padding="5dp">
 
-<!--    <LinearLayout-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:orientation="horizontal">-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:orientation="vertical">
 
         <Button
             android:id="@+id/bn_add_ap"
@@ -24,7 +26,7 @@
             android:layout_height="60dp"
             app:backgroundTint="@color/purple_200"
             android:text="Add Reference Point" />
-<!--    </LinearLayout>-->
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -20,9 +20,8 @@ public class WifiResultsAdapter extends RecyclerView.Adapter<WifiResultsAdapter.
 
 //    当需要新的ViewHolder来显示列表项时，会调用onCreateViewHolder方法去创建ViewHolder
 //    Create new views (invoked by the layout manager)
-    @NonNull
     @Override
-    public WifiResultsAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public WifiResultsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // create a new view
         LinearLayout linearLayout = (LinearLayout) LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_wifi_results, parent, false);
@@ -34,7 +33,7 @@ public class WifiResultsAdapter extends RecyclerView.Adapter<WifiResultsAdapter.
 //    将数据绑定在ViewHolder上。
 //    Replace/Bind the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(@NonNull WifiResultsAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, int position) {
         holder.bssid.setText("MAC: " + scanResults.get(position).BSSID);
         holder.ssid.setText("SSID: " + scanResults.get(position).SSID);
         holder.capabilities.setText("Type: " + scanResults.get(position).capabilities);

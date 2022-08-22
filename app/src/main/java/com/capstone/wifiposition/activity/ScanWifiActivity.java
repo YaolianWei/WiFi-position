@@ -69,12 +69,7 @@ public class ScanWifiActivity extends AppCompatActivity implements View.OnClickL
     }
 
     public void refresh() {
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                manager.startScan();
-            }
-        }, 1000);
+        handler.postDelayed(() -> manager.startScan(), 1000);
     }
 
     @Override
@@ -118,32 +113,21 @@ public class ScanWifiActivity extends AppCompatActivity implements View.OnClickL
 
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (!wifiEnabled) {
-            manager.setWifiEnabled(false);
-        }
-    }
-
     class WifiListReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
             results = manager.getScanResults();
-            Collections.sort(results, new Comparator<ScanResult>() {
-                @Override
-                public int compare(ScanResult scanResult1, ScanResult scanResult2) {
-                    //  return 1 if rhs should be before lhs
-                    //  return -1 if lhs should be before rhs
-                    //  return 0 otherwise
-                    if (scanResult1.level > scanResult2.level) {
-                        return -1;
-                    } else if (scanResult1.level < scanResult2.level) {
-                        return 1;
-                    }
-                    return 0;
+            Collections.sort(results, (scanResult1, scanResult2) -> {
+                //  return 1 if rhs should be before lhs
+                //  return -1 if lhs should be before rhs
+                //  return 0 otherwise
+                if (scanResult1.level > scanResult2.level) {
+                    return -1;
+                } else if (scanResult1.level < scanResult2.level) {
+                    return 1;
                 }
+                return 0;
             });
             wifiResultsAdapter.setScanResults(results);
             wifiResultsAdapter.notifyDataSetChanged();
@@ -158,6 +142,14 @@ public class ScanWifiActivity extends AppCompatActivity implements View.OnClickL
                 Log.v(TAG, "  Level       =" + results.get(i).level);
                 Log.v(TAG, "---------------");
             }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (!wifiEnabled) {
+            manager.setWifiEnabled(false);
         }
     }
 }

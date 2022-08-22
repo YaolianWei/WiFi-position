@@ -31,6 +31,7 @@ import com.capstone.wifiposition.utils.RecyclerItemClickListener;
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionParameters;
 import io.github.luizgrp.sectionedrecyclerviewadapter.SectionedRecyclerViewAdapter;
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 
 public class PlacesDetailActivity extends AppCompatActivity implements View.OnClickListener, RecyclerItemClickListener.OnItemClickListener {
 
@@ -58,6 +59,11 @@ public class PlacesDetailActivity extends AppCompatActivity implements View.OnCl
         Log.i("PlacesDetailActivity", "id > " + placeID);
 
         Realm realm = Realm.getDefaultInstance();
+//        RealmConfiguration config = new RealmConfiguration.Builder()
+//                .name("placeDetails.realm")
+//                .schemaVersion(0)
+//                .build();
+//        Realm realm = Realm.getInstance(config);
         place = realm.where(Places.class).equalTo("id", placeID).findFirst();
 
         initView();
@@ -136,10 +142,10 @@ public class PlacesDetailActivity extends AppCompatActivity implements View.OnCl
         }
     }
 
-    private void startApActivity(String apId) {
+    private void startApActivity(String apID) {
         Intent intent = new Intent(this, AccessPointActivity.class);
         intent.putExtra("placeID", placeID);
-        intent.putExtra("apID", apId);
+        intent.putExtra("apID", apID);
         startActivity(intent);
     }
 

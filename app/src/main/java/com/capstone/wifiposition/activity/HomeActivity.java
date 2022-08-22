@@ -1,5 +1,6 @@
 package com.capstone.wifiposition.activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -7,6 +8,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -37,9 +39,9 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         initView();
-        RealmConfiguration realmConfiguration = new RealmConfiguration.Builder().build();
+        RealmConfiguration config = new RealmConfiguration.Builder().allowWritesOnUiThread(true).build();
 //        Create a new empty instance of Realm
-        realm = Realm.getInstance(realmConfiguration);
+        realm = Realm.getInstance(config);
 
         places = realm.where(Places.class).findAll();
         if (places.isEmpty()) {
@@ -110,7 +112,34 @@ public class HomeActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onItemLongClick(View view, int position) {
-
+        Places place = places.get(position);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.Base_Theme_AppCompat_Dialog);
+        if (place != null) {
+            builder.setTitle("Delete this place");
+            builder.setMessage("Delete " + place.getName());
+        }
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Realm realm = Realm.getDefaultInstance();
+                if (place != null) {
+                    realm.executeTransaction(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            place.deleteFromRealm();
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mPlacesAdapter.notifyDataSetChanged();
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        });
+        builder.setNegativeButton("Cancel",null);
+        builder.show();
     }
 
     @Override

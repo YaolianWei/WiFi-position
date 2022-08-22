@@ -75,5 +75,4 @@ public class Places extends RealmObject {
         this.rps = rps;
     }
 
-
 }

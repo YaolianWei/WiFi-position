@@ -18,7 +18,7 @@
                 android:id="@+id/bn_ap_scan"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Select via Scan" />
+                android:text="Select via scan" />
 
             <EditText
                 android:id="@+id/ap_name"
