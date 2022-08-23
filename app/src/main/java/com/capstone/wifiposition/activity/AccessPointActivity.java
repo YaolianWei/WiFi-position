@@ -37,6 +37,7 @@ public class AccessPointActivity extends AppCompatActivity implements View.OnCli
     private String placeID, apID;
     private boolean isEdit = false;
     private AccessPoint accessPoint;
+    private final int REQUEST_CODE_ACCESS_COARSE_LOCATION = 199;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -77,17 +78,6 @@ public class AccessPointActivity extends AppCompatActivity implements View.OnCli
         bnScanAp.setOnClickListener(this);
 
     }
-
-    ActivityResultLauncher<Intent> launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-        @Override
-        public void onActivityResult(ActivityResult result) {
-            if (result.getResultCode() == RESULT_OK) {
-                Intent intent = result.getData();
-                AccessPoint accessPoint = (AccessPoint) intent.getParcelableExtra("accessPoint");
-                setValuesToFields(accessPoint);
-            }
-        }
-    });
 
     private void setEditMode() {
         Realm realm = Realm.getDefaultInstance();
@@ -143,11 +133,12 @@ public class AccessPointActivity extends AppCompatActivity implements View.OnCli
             }
         } else if (view.getId() == bnScanAp.getId()) {
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 199);
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_CODE_ACCESS_COARSE_LOCATION);
                 //After this point you wait for callback in onRequestPermissionsResult(int, String[], int[]) overridden method
 
             } else{
-                launcher.launch(new Intent(this, ScanWifiActivity.class));
+//                launcher.launch(new Intent(this, ScanWifiActivity.class));
+                startScanWifiActivity();
             }
         }
     }
@@ -156,16 +147,33 @@ public class AccessPointActivity extends AppCompatActivity implements View.OnCli
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 199 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            launcher.launch(new Intent(this, ScanWifiActivity.class));
+//            launcher.launch(new Intent(this, ScanWifiActivity.class));
+            startScanWifiActivity();
         }
     }
 
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if (requestCode == 1212 && resultCode == RESULT_OK) {
-//            AccessPoint accessPoint = (AccessPoint) data.getParcelableExtra("accessPoint");
-//            setValuesToFields(accessPoint);
+//    ActivityResultLauncher<Intent> launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+//        @Override
+//        public void onActivityResult(ActivityResult result) {
+//            if (result.getResultCode() == RESULT_OK) {
+//                Intent intent = result.getData();
+//                AccessPoint accessPoint = (AccessPoint) intent.getParcelableExtra("accessPoint");
+//                setValuesToFields(accessPoint);
+//            }
 //        }
-//    }
+//    });
+
+    private void startScanWifiActivity() {
+        Intent intent = new Intent(this, ScanWifiActivity.class);
+        startActivityForResult(intent,1212);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1212 && resultCode == RESULT_OK) {
+            AccessPoint accessPoint = (AccessPoint) data.getParcelableExtra("accessPoint");
+            setValuesToFields(accessPoint);
+        }
+    }
 }

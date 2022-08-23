@@ -1,19 +1,25 @@
 package com.capstone.wifiposition.activity;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -39,21 +45,27 @@ public class ScanWifiActivity extends AppCompatActivity implements View.OnClickL
     private WifiListReceiver listReceiver;
     private final Handler handler = new Handler();
     private Button bnRefresh;
-    private List<ScanResult> results = new ArrayList<>();
+    private List<ScanResult> scanResults = new ArrayList<>();
     private WifiResultsAdapter wifiResultsAdapter = new WifiResultsAdapter();
-    private boolean wifiEnabled;
+    private final int REQUEST_CODE = 1;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan_wifi);
         initView();
+//        获得WifiManager 获取系统Wi-Fi服务
         manager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         listReceiver = new WifiListReceiver();
-        wifiEnabled = manager.isWifiEnabled();
+//        registerReceiver(listReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+//        manager.startScan();
         if (!manager.isWifiEnabled()) {
-            manager.setWifiEnabled(true);
+            if (manager.getWifiState() != WifiManager.WIFI_STATE_ENABLING){
+                manager.setWifiEnabled(true);
+            }
         }
+        startScanWifi();
+
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
@@ -95,7 +107,7 @@ public class ScanWifiActivity extends AppCompatActivity implements View.OnClickL
     @Override
     public void onItemClick(View view, int position) {
         AccessPoint accessPoint = new AccessPoint();
-        ScanResult scanResult = results.get(position);
+        ScanResult scanResult = scanResults.get(position);
         accessPoint.setId(UUID.randomUUID().toString());
         accessPoint.setMac_address(scanResult.BSSID);
         accessPoint.setSsid(scanResult.SSID);
@@ -117,8 +129,10 @@ public class ScanWifiActivity extends AppCompatActivity implements View.OnClickL
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            results = manager.getScanResults();
-            Collections.sort(results, (scanResult1, scanResult2) -> {
+//            获取扫描到的所有Wi-Fi信息
+            scanResults = manager.getScanResults();
+            Log.d(TAG, "Wifi List Size: " + scanResults.size());
+            Collections.sort(scanResults, (scanResult1, scanResult2) -> {
                 //  return 1 if rhs should be before lhs
                 //  return -1 if lhs should be before rhs
                 //  return 0 otherwise
@@ -129,17 +143,17 @@ public class ScanWifiActivity extends AppCompatActivity implements View.OnClickL
                 }
                 return 0;
             });
-            wifiResultsAdapter.setScanResults(results);
+            wifiResultsAdapter.setScanResults(scanResults);
             wifiResultsAdapter.notifyDataSetChanged();
-            final int N = results.size();
+            final int N = scanResults.size();
 
             Log.v(TAG, "Wi-Fi Scan Results ... Count:" + N);
-            for(int i=0; i < N; ++i) {
-                Log.v(TAG, "  BSSID       =" + results.get(i).BSSID);
-                Log.v(TAG, "  SSID        =" + results.get(i).SSID);
-                Log.v(TAG, "  Capabilities=" + results.get(i).capabilities);
-                Log.v(TAG, "  Frequency   =" + results.get(i).frequency);
-                Log.v(TAG, "  Level       =" + results.get(i).level);
+            for(int i=0; i < N; i++) {
+                Log.v(TAG, "  BSSID       =" + scanResults.get(i).BSSID);
+                Log.v(TAG, "  SSID        =" + scanResults.get(i).SSID);
+                Log.v(TAG, "  Capabilities=" + scanResults.get(i).capabilities);
+                Log.v(TAG, "  Frequency   =" + scanResults.get(i).frequency);
+                Log.v(TAG, "  Level       =" + scanResults.get(i).level);
                 Log.v(TAG, "---------------");
             }
         }
@@ -148,8 +162,42 @@ public class ScanWifiActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (!wifiEnabled) {
+        if (!manager.isWifiEnabled()) {
             manager.setWifiEnabled(false);
+        }
+    }
+
+    public void startScanWifi() {
+//        如果API level >=23 (Android 6.0) 时
+        if ( Build.VERSION.SDK_INT >= 23) {
+//            判断是否具有权限
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//                判断是否需要向用户解释为什么需要申请该权限
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_COARSE_LOCATION)) {
+//                    showToast("自Android 6.0开始需要打开该权限");
+                }
+//                请求权限
+                ActivityCompat.requestPermissions(this, new String[]{
+                                Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+                Log.i(TAG, "User location NOT ENABLED, waiting for permission");
+
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                用户允许改权限，0表示允许，-1表示拒绝 PERMISSION_GRANTED = 0， PERMISSION_GRANTED = -1
+//                    start scanning
+                    manager.startScan();
+                } else {
+//                    Permission for location Denied
+                    Toast.makeText( this,"Well can't help you then!" , Toast.LENGTH_SHORT).show();
+                }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 }
