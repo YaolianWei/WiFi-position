@@ -59,7 +59,7 @@ public class LocateActivity extends AppCompatActivity {
 
         // set layout
         setContentView(R.layout.activity_locate);
-        initUI();
+        initView();
 
         defaultAlgo = AppConfig.getDefaultAlgo(this);
         placeID = getIntent().getStringExtra("placeID");
@@ -72,7 +72,7 @@ public class LocateActivity extends AppCompatActivity {
         Log.v("LocateActivity", "onCreate");
     }
 
-    private void initUI() {
+    private void initView() {
         layoutManager = new LinearLayoutManager(this);
         tvLocation = findViewById(R.id.location);
         tvNearestLocation = findViewById(R.id.nearest_location);

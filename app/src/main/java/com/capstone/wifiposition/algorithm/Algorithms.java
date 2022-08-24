@@ -71,22 +71,64 @@ public class Algorithms {
             return null;
 
         switch (algorithm_choice) {
-
             case 1:
-                return KNN_WKNN_Algorithm(places, observedRSSValues, parameter, false);
+                return COS_Algorithm(places, observedRSSValues);
             case 2:
+                return KNN_WKNN_Algorithm(places, observedRSSValues, parameter, false);
+            case 3:
                 return KNN_WKNN_Algorithm(places, observedRSSValues, parameter, true);
+            case 4:
+                return BAYES_Algorithm(places, observedRSSValues, 10f, false);
+            case 5:
+                return BAYES_Algorithm(places, observedRSSValues, 10f, true);
         }
         return null;
 
     }
 
     /**
-     * Calculates user location based on Weighted/Not Weighted K Nearest
-     * Neighbor (KNN) Algorithm
+     * Calculates user location based on Cosine similarity Algorithm
      *
      * @param place
-     *            the project details from db for current area
+     *            the place details from db for current area
+     *
+     * @param observedRSSValues
+     *            RSS values currently observed
+     *
+     * @return The estimated user location
+     */
+    private static Location COS_Algorithm(Places place, ArrayList<Float> observedRSSValues) {
+        RealmList<AccessPoint> rssValues;
+        double curResult;
+        ArrayList<Distance> distanceResultsList = new ArrayList<Distance>();
+        String myLocation;
+
+        for (ReferencePoint referencePoint : place.getRps()) {
+            rssValues = referencePoint.getScanAps();
+            curResult = calculateCosDistance(rssValues, observedRSSValues);
+
+            distanceResultsList.add(0, new Distance(curResult, referencePoint.getLocId(), referencePoint.getName()));
+        }
+
+        Collections.sort(distanceResultsList, new Comparator<Distance>() {
+            @Override
+            public int compare(Distance d1, Distance d2) {
+                return (d1.getDistance() > d2.getDistance() ? 1 : (d1.getDistance() == d2.getDistance() ? 0 : -1));
+            }
+        });
+
+        myLocation = calculateAverageKDistanceLocations(distanceResultsList, 1);
+
+        Location location = new Location(myLocation, distanceResultsList);
+        return location;
+    }
+
+    /**
+     * Calculates user location based on Weighted/Not Weighted K Nearest Neighbor (KNN) Algorithm
+     * KNN & WKNN
+     *
+     * @param place
+     *            the place details from db for current area
      *
      * @param observedRSSValues
      *            RSS values currently observed
@@ -97,12 +139,11 @@ public class Algorithms {
      *
      * @return The estimated user location
      */
-    private static Location KNN_WKNN_Algorithm(Places place, ArrayList<Float> observedRSSValues,
-                                                               String parameter, boolean isWeighted) {
+    private static Location KNN_WKNN_Algorithm(Places place, ArrayList<Float> observedRSSValues, String parameter, boolean isWeighted) {
 
         RealmList<AccessPoint> rssValues;
         float curResult = 0;
-        ArrayList<Distance> locDistanceResultsList = new ArrayList<Distance>();
+        ArrayList<Distance> distanceResultsList = new ArrayList<Distance>();
         String myLocation = null;
         int K;
 
@@ -121,24 +162,95 @@ public class Algorithms {
             if (curResult == Float.NEGATIVE_INFINITY)
                 return null;
 
-            locDistanceResultsList.add(0, new Distance(curResult, referencePoint.getLocId(), referencePoint.getName()));
+            distanceResultsList.add(0, new Distance(curResult, referencePoint.getLocId(), referencePoint.getName()));
         }
 
         // Sort locations-distances pairs based on minimum distances
-        Collections.sort(locDistanceResultsList, new Comparator<Distance>() {
-            public int compare(Distance gd1, Distance gd2) {
-                return (gd1.getDistance() > gd2.getDistance() ? 1 : (gd1.getDistance() == gd2.getDistance() ? 0 : -1));
+        Collections.sort(distanceResultsList, new Comparator<Distance>() {
+            public int compare(Distance d1, Distance d2) {
+                return (d1.getDistance() > d2.getDistance() ? 1 : (d1.getDistance() == d2.getDistance() ? 0 : -1));
             }
         });
 
         if (!isWeighted) {
-            myLocation = calculateAverageKDistanceLocations(locDistanceResultsList, K);
+            myLocation = calculateAverageKDistanceLocations(distanceResultsList, K);
         } else {
-            myLocation = calculateWeightedAverageKDistanceLocations(locDistanceResultsList, K);
+            myLocation = calculateWeightedAverageKDistanceLocations(distanceResultsList, K);
         }
-        Location places = new Location(myLocation, locDistanceResultsList);
+
+        Location places = new Location(myLocation, distanceResultsList);
         return places;
 
+    }
+
+    /**
+     * Calculates user location based on Weighted/Not Weighted Bayes Algorithm
+     *
+     * @param place
+     *            the place details from db for current area
+     *
+     * @param observedRSSValues
+     *            RSS values currently observed
+     * @param sGreek
+     *
+     * @param isWeighted
+     *            To be weighted or not
+     *
+     * @return The estimated user location
+     */
+    private static Location BAYES_Algorithm(Places place, ArrayList<Float> observedRSSValues, float sGreek, boolean isWeighted) {
+        RealmList<AccessPoint> rssValues;
+        double curResult = 0.0d;
+        String myLocation = null;
+        double highestProbability = Double.NEGATIVE_INFINITY;
+        ArrayList<Distance> distanceResultList = new ArrayList<>();
+
+        for (ReferencePoint referencePoint : place.getRps()) {
+            rssValues = referencePoint.getScanAps();
+            curResult = calculateProbability(rssValues, observedRSSValues, sGreek);
+
+            if (curResult == Double.NEGATIVE_INFINITY) {
+                return null;
+            } else if (curResult > highestProbability) {
+                highestProbability = curResult;
+                myLocation = referencePoint.getLocId();
+            }
+
+            if (isWeighted) {
+                distanceResultList.add(0, new Distance(curResult, referencePoint.getLocId(), referencePoint.getName()));
+            }
+        }
+
+        if (isWeighted) {
+            myLocation = calculateWeightedAverageProbabilityLocations(distanceResultList);
+        }
+
+        Location location = new Location(myLocation, distanceResultList);
+        return location;
+
+    }
+
+    /**
+     * Calculates the cos distance between the currently observed RSS
+     * values and the RSS values for a specific location.
+     *
+     * @param l1
+     *            RSS values of a location in stored in AP obj of locations
+     * @param l2
+     *            RSS values currently observed
+     *
+     * @return The cos distance, or MIN_VALUE for error
+     */
+    private static double calculateCosDistance(RealmList<AccessPoint> l1, ArrayList<Float> l2) {
+        double A = 0, B = 0, AB = 0;
+        for (int i = 0; i < l1.get(i).getMeanRss(); i++) {
+            double a = l1.get(i).getMeanRss();
+            double b = l2.get(i);
+            A += a * a;
+            B += b * b;
+            AB += a * b;
+        }
+        return Math.acos(AB / Math.sqrt(A) / Math.sqrt(B));
     }
 
     /**
@@ -263,8 +375,7 @@ public class Algorithms {
     }
 
     /**
-     * Calculates the Weighted Average of the K locations that have the shortest
-     * distances D
+     * Calculates the Weighted Average of the K locations that have the shortest distances D
      *
      * @param LocDistance_Results_List
      *            Locations-Distances pairs sorted by distance
@@ -312,8 +423,7 @@ public class Algorithms {
     }
 
     /**
-     * Calculates the Weighted Average over ALL locations where the weights are
-     * the Normalized Probabilities
+     * Calculates the Weighted Average over ALL locations where the weights are the Normalized Probabilities
      *
      * @param LocDistance_Results_List
      *            Locations-Probability pairs
