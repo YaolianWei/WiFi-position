@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -144,21 +143,21 @@ public class ReferencePointActivity extends AppCompatActivity implements View.On
                 if (readingsCount < AppConfig.READINGS_BATCH) {
                     refresh();
                 } else {
-                    caliberationCompleted();
+                    calibrationCompleted();
                 }
             }
         }, AppConfig.FETCH_INTERVAL);
     }
 
-    private void caliberationCompleted() {
+    private void calibrationCompleted() {
         isCalibrating = false;
-        Log.v(TAG, "caliberationCompleted");
+        Log.v(TAG, "calibrationCompleted");
         Map<String, List<Integer>> values = list;
         Log.v(TAG, "values:"+values.toString());
         for (Map.Entry<String, List<Integer>> entry : values.entrySet()) {
-            List<Integer> readingsOfAMac = entry.getValue();
-            Double mean = calculateMeanValue(readingsOfAMac);
-            Log.v(TAG, "entry.Key:"+entry.getKey()+" aps:"+aps);
+            List<Integer> apsOfAMac = entry.getValue();
+            Double mean = calculateMeanValue(apsOfAMac);
+            Log.v(TAG, "entry.Key:" + entry.getKey() + " aps:" + aps);
             AccessPoint accessPoint = aps.get(entry.getKey());
             AccessPoint updatedPoint = new AccessPoint(accessPoint);
             updatedPoint.setMeanRss(mean);
@@ -194,7 +193,7 @@ public class ReferencePointActivity extends AppCompatActivity implements View.On
 
         if (!isEdit) {
             bnRpSave.setEnabled(false);
-            bnRpSave.setText("Caliberating...");
+            bnRpSave.setText("Calibrating...");
         } else {
             bnRpSave.setEnabled(true);
             bnRpSave.setText("Save");
@@ -214,11 +213,11 @@ public class ReferencePointActivity extends AppCompatActivity implements View.On
             referencePoint = setValues(referencePoint);
             referencePoint.setDate(Calendar.getInstance().getTime());
             referencePoint.setDescription("");
-//            apsWithReading = realm.copyToRealmOrUpdate(apsWithReading);
+//            accessPointList = realm.copyToRealmOrUpdate(accessPointList);
             if (referencePoint.getScanAps() == null) {
-                RealmList<AccessPoint> readings = new RealmList<>();
-                readings.addAll(accessPointList);
-                referencePoint.setsSanAps(readings);
+                RealmList<AccessPoint> accessPoints = new RealmList<>();
+                accessPoints.addAll(accessPointList);
+                referencePoint.setsSanAps(accessPoints);
             } else {
                 referencePoint.getScanAps().addAll(accessPointList);
             }
@@ -288,12 +287,12 @@ public class ReferencePointActivity extends AppCompatActivity implements View.On
 
             Log.v(TAG, "Count:" + readingsCount+" scanResult:"+ scanResults.toString()+" aps:"+aps.toString());
             for (int i = 0; i < readingsCount; ++i) {
-//                Log.v(TAG, "  BSSID       =" + results.get(i).BSSID);
-//                Log.v(TAG, "  SSID        =" + results.get(i).SSID);
-//                Log.v(TAG, "  Capabilities=" + results.get(i).capabilities);
-//                Log.v(TAG, "  Frequency   =" + results.get(i).frequency);
-//                Log.v(TAG, "  Level       =" + results.get(i).level);
-//                Log.v(TAG, "---------------");
+                Log.v(TAG, "  BSSID       =" + scanResults.get(i).BSSID);
+                Log.v(TAG, "  SSID        =" + scanResults.get(i).SSID);
+                Log.v(TAG, "  Capabilities=" + scanResults.get(i).capabilities);
+                Log.v(TAG, "  Frequency   =" + scanResults.get(i).frequency);
+                Log.v(TAG, "  Level       =" + scanResults.get(i).level);
+                Log.v(TAG, "---------------");
             }
         }
     }

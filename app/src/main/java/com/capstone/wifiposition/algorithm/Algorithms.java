@@ -8,10 +8,6 @@ import com.capstone.wifiposition.model.ReferencePoint;
 import com.capstone.wifiposition.model.WifiInfo;
 import com.capstone.wifiposition.utils.AppConfig;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -464,78 +460,20 @@ public class Algorithms {
 
     }
 
-    /**
-     * Reads the parameters from the file
-     *
-     * @param file
-     *            the file of radiomap, to read parameters
-     *
-     * @param algorithm_choice
-     *            choice of several algorithms
-     *
-     * @return The parameter for the algorithm
-     *
-     */
-    private static String readParameter(File file, int algorithm_choice) {
-        String line;
-        BufferedReader reader = null;
-
-        String parameter = null;
-
-        try {
-            FileReader fr = new FileReader(file.getAbsolutePath().replace(".txt", "-parameters2.txt"));
-
-            reader = new BufferedReader(fr);
-
-            while ((line = reader.readLine()) != null) {
-
-                /* Ignore the labels */
-                if (line.startsWith("#") || line.trim().equals("")) {
-                    continue;
-                }
-
-                /* Split fields */
-                String[] temp = line.split(":");
-
-                /* The file may be corrupted so ignore reading it */
-                if (temp.length != 2) {
-                    return null;
-                }
-
-                if (algorithm_choice == 0 && temp[0].equals("NaN")) {
-                    parameter = temp[1];
-                    break;
-                } else if (algorithm_choice == 1 && temp[0].equals("KNN")) {
-                    parameter = temp[1];
-                    break;
-                } else if (algorithm_choice == 2 && temp[0].equals("WKNN")) {
-                    parameter = temp[1];
-                    break;
-                }
-
-            }
-
-        } catch (Exception e) {
-            return null;
-        } finally {
-            if (reader != null)
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                }
-        }
-
-        return parameter;
-    }
-
     private static String readParameter(int algorithm_choice) {
         String parameter = null;
 
         if (algorithm_choice == 1) {
-            // && ("KNN")
             parameter = K;
         } else if (algorithm_choice == 2) {
+            // && ("KNN")
+            parameter = K;
+        } else if (algorithm_choice == 3) {
             // && ("WKNN")
+            parameter = K;
+        } else if (algorithm_choice == 4) {
+            parameter = K;
+        } else if (algorithm_choice == 5) {
             parameter = K;
         }
         return parameter;

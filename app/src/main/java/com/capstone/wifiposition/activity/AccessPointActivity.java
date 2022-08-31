@@ -5,16 +5,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -31,6 +27,7 @@ import io.realm.Realm;
 
 public class AccessPointActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private String TAG = "AccessPointActivity";
     private Button bnScanAp;
     private Button bnAddAp;
     private EditText name, desc, x, y, mac;
@@ -83,6 +80,7 @@ public class AccessPointActivity extends AppCompatActivity implements View.OnCli
         Realm realm = Realm.getDefaultInstance();
         accessPoint = realm.where(AccessPoint.class).equalTo("id", apID).findFirst();
         setValuesToFields(accessPoint);
+
     }
 
     private void setValuesToFields(AccessPoint accessPoint) {
@@ -176,4 +174,5 @@ public class AccessPointActivity extends AppCompatActivity implements View.OnCli
             setValuesToFields(accessPoint);
         }
     }
+
 }

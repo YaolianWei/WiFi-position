@@ -107,10 +107,10 @@ public class PlacesDetailActivity extends AppCompatActivity implements View.OnCl
             getSupportActionBar().setTitle(name);
         }
         if (apCount > 0) {
-            ((TextView)findViewById(R.id.ap_count)).setText("Access Points:"+String.valueOf(apCount));
+            ((TextView)findViewById(R.id.ap_count)).setText("Access Points:" + String.valueOf(apCount));
         }
         if (rpCount > 0) {
-            ((TextView)findViewById(R.id.rp_count)).setText("Reference Points:"+String.valueOf(apCount));
+            ((TextView)findViewById(R.id.rp_count)).setText("Reference Points:" + String.valueOf(apCount));
         }
     }
 
@@ -149,10 +149,10 @@ public class PlacesDetailActivity extends AppCompatActivity implements View.OnCl
         startActivity(intent);
     }
 
-    private void startRpActivity(String rpId) {
+    private void startRpActivity(String rpID) {
         Intent intent = new Intent(this, ReferencePointActivity.class);
         intent.putExtra("placeID", placeID);
-        intent.putExtra("rpID", rpId);
+        intent.putExtra("rpID", rpID);
         startActivity(intent);
     }
 

@@ -101,7 +101,7 @@ public class LocateActivity extends AppCompatActivity {
                     tvLocation.setText("Location: NA\nNote:Please switch on your wifi and location services with permission provided to App");
                 } else {
                     String locationValue = AppConfig.reduceDecimalPlaces(loc.getLocation());
-                    tvLocation.setText("Location: " + locationValue);
+                    tvLocation.setText("Location(x,y): (" + locationValue + ")");
                     String distanceFromOrigin = AppConfig.getDistanceFromOrigin(loc.getLocation());
                     tvDistance.setText("The distance from origin is: " + distanceFromOrigin + "m");
                     Distance theNearestPoint = AppConfig.getNearestPoint(loc);
